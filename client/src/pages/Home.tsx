@@ -20,6 +20,7 @@ import {
   X,
   Youtube,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 const navItems = [
   ["HOME", "home"],
@@ -123,6 +124,22 @@ function ScrollReveal() {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { data: liveContent } = trpc.content.list.useQuery();
+
+  const hasLiveContent = Boolean(liveContent?.length);
+  const liveEvents = liveContent?.filter(item => item.type === "event") ?? [];
+  const liveAchievements = liveContent?.filter(item => item.type === "achievement") ?? [];
+  const liveToppers = liveContent?.filter(item => item.type === "topper") ?? [];
+  const liveTeachers = liveContent?.filter(item => item.type === "faculty") ?? [];
+  const liveAlumni = liveContent?.filter(item => item.type === "alumni") ?? [];
+  const liveGallery = liveContent?.filter(item => item.type === "gallery") ?? [];
+  const upcomingEventItems = hasLiveContent ? liveEvents.filter(item => item.sectionGroup !== "past").map(item => [item.title, item.dateLabel ?? ""]) : upcomingEvents;
+  const pastEventItems = hasLiveContent ? liveEvents.filter(item => item.sectionGroup === "past").map(item => [item.title, item.dateLabel ?? ""]) : pastEvents;
+  const achievementItems = hasLiveContent ? liveAchievements.map(item => item.title) : achievements;
+  const topperItems = hasLiveContent ? liveToppers.map(item => [item.title, item.subtitle ?? "", item.detail ?? "", item.color || item.subtitle?.charAt(0) || "E"]) : toppers;
+  const teacherItems = hasLiveContent ? liveTeachers.map(item => [item.title, item.subtitle ?? "", item.detail || item.title.slice(0, 2).toUpperCase()]) : teachers;
+  const alumniItems = hasLiveContent ? liveAlumni.map(item => [item.title, item.detail ?? "", item.subtitle ?? ""]) : alumni;
+  const galleryItems = hasLiveContent ? liveGallery.map(item => [item.imageUrl || item.title, item.title, item.subtitle || "FIELD NOTES", item.color || "gallery-cyan"]) : gallery;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);
@@ -155,6 +172,7 @@ export default function Home() {
             </a>
           ))}
         </nav>
+        <a className="header-admin-link" href="/admin">ADMIN</a>
         <a className="header-contact" href="#contact">CONNECT <ArrowUpRight size={15} /></a>
         <button className="menu-trigger" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -231,17 +249,17 @@ export default function Home() {
               <article className="activity-card activity-card-feature reveal">
                 <div className="card-icon"><Sparkles size={23} /></div><span className="card-tag">NEXT UP</span>
                 <h3>Upcoming Events</h3>
-                <ul>{upcomingEvents.map(([title, date]) => <li key={title}><span><strong>{title}</strong><small>{date}</small></span><ArrowUpRight size={17} /></li>)}</ul>
+                <ul>{upcomingEventItems.map(([title, date]) => <li key={title}><span><strong>{title}</strong><small>{date}</small></span><ArrowUpRight size={17} /></li>)}</ul>
               </article>
               <article className="activity-card reveal">
                 <div className="card-icon card-icon-muted"><Network size={23} /></div><span className="card-tag">ARCHIVE</span>
                 <h3>Events Gone By</h3>
-                <ul>{pastEvents.map(([title, date]) => <li key={title}><span><strong>{title}</strong><small>{date}</small></span><ArrowUpRight size={17} /></li>)}</ul>
+                <ul>{pastEventItems.map(([title, date]) => <li key={title}><span><strong>{title}</strong><small>{date}</small></span><ArrowUpRight size={17} /></li>)}</ul>
               </article>
               <article id="achievements" className="activity-card achievement-card reveal">
                 <div className="card-icon card-icon-amber"><Trophy size={23} /></div><span className="card-tag">PROUD MOMENTS</span>
                 <h3>Student Achievements</h3>
-                <ol>{achievements.map((achievement, index) => <li key={achievement}><span>0{index + 1}</span>{achievement}</li>)}</ol>
+                <ol>{achievementItems.map((achievement, index) => <li key={achievement}><span>0{index + 1}</span>{achievement}</li>)}</ol>
               </article>
             </div>
           </div>
@@ -251,19 +269,19 @@ export default function Home() {
           <div className="container">
             <SectionLabel eyebrow="THE HIGH BAR" number="03" />
             <div className="section-heading-row toppers-heading-row"><h2 className="section-heading reveal">Our <span>Toppers</span></h2><p className="section-support reveal">Celebrating focused effort, curious minds and the discipline to go further.</p></div>
-            <div className="topper-grid">{toppers.map(([year, name, score, initial], index) => <article className="topper-card reveal" key={name} style={{ "--delay": `${index * 80}ms` } as React.CSSProperties}><div className="portrait portrait-topper"><span>{initial}</span><div className="portrait-grid" /></div><div className="topper-meta"><span>{year}</span><strong>{name}</strong><em>SGPA: {score}</em></div><span className="topper-index">0{index + 1}</span></article>)}</div>
+            <div className="topper-grid">{topperItems.map(([year, name, score, initial], index) => <article className="topper-card reveal" key={name} style={{ "--delay": `${index * 80}ms` } as React.CSSProperties}><div className="portrait portrait-topper"><span>{initial}</span><div className="portrait-grid" /></div><div className="topper-meta"><span>{year}</span><strong>{name}</strong><em>SGPA: {score}</em></div><span className="topper-index">0{index + 1}</span></article>)}</div>
           </div>
         </section>
 
         <section id="teachers" className="teachers-section section-pad pale-section">
-          <div className="container"><SectionLabel eyebrow="THE PEOPLE BEHIND THE SIGNAL" number="04" /><div className="section-heading-row"><h2 className="section-heading reveal">Our <span>Teachers</span></h2><span className="faculty-count reveal">08 / FACULTY MEMBERS</span></div><div className="teacher-grid">{teachers.map(([name, role, initials], index) => <article className="teacher-card reveal" key={name} style={{ "--delay": `${index * 45}ms` } as React.CSSProperties}><div className={`portrait portrait-teacher portrait-${index % 4}`}><span>{initials}</span><div className="portrait-grid" /></div><div><h3>{name}</h3><p>{role}</p></div><ExternalLink className="teacher-arrow" size={16} /></article>)}</div></div>
+          <div className="container"><SectionLabel eyebrow="THE PEOPLE BEHIND THE SIGNAL" number="04" /><div className="section-heading-row"><h2 className="section-heading reveal">Our <span>Teachers</span></h2><span className="faculty-count reveal">{String(teacherItems.length).padStart(2, "0")} / FACULTY MEMBERS</span></div><div className="teacher-grid">{teacherItems.map(([name, role, initials], index) => <article className="teacher-card reveal" key={name} style={{ "--delay": `${index * 45}ms` } as React.CSSProperties}><div className={`portrait portrait-teacher portrait-${index % 4}`}><span>{initials}</span><div className="portrait-grid" /></div><div><h3>{name}</h3><p>{role}</p></div><ExternalLink className="teacher-arrow" size={16} /></article>)}</div></div>
         </section>
 
         <section id="alumni" className="alumni-section section-pad dark-section">
-          <div className="container alumni-layout"><div><SectionLabel eyebrow="THE NETWORK" number="05" /><h2 className="section-heading reveal">Alumni<br /><span>Corner</span></h2><p className="section-support alumni-support reveal">Our alumni are working in various organizations and making the department proud.</p><div className="alumni-stamp reveal"><Users size={18} /> ECT COMMUNITY / CONNECTED</div></div><div className="table-wrap reveal"><table><thead><tr><th>Name</th><th>Batch</th><th>Current Position</th><th /></tr></thead><tbody>{alumni.map(([name, batch, position]) => <tr key={name}><td>{name}</td><td>{batch}</td><td>{position}</td><td><ArrowUpRight size={16} /></td></tr>)}</tbody></table><div className="table-note">A growing network of makers, builders and thoughtful technologists.</div></div></div>
+          <div className="container alumni-layout"><div><SectionLabel eyebrow="THE NETWORK" number="05" /><h2 className="section-heading reveal">Alumni<br /><span>Corner</span></h2><p className="section-support alumni-support reveal">Our alumni are working in various organizations and making the department proud.</p><div className="alumni-stamp reveal"><Users size={18} /> ECT COMMUNITY / CONNECTED</div></div><div className="table-wrap reveal"><table><thead><tr><th>Name</th><th>Batch</th><th>Current Position</th><th /></tr></thead><tbody>{alumniItems.map(([name, batch, position]) => <tr key={name}><td>{name}</td><td>{batch}</td><td>{position}</td><td><ArrowUpRight size={16} /></td></tr>)}</tbody></table><div className="table-note">A growing network of makers, builders and thoughtful technologists.</div></div></div>
         </section>
 
-        <section className="gallery-section section-pad"><div className="container"><SectionLabel eyebrow="IN THE FIELD" number="06" /><div className="section-heading-row gallery-heading-row"><h2 className="section-heading reveal">Photo <span>Gallery</span></h2><span className="gallery-count reveal">SELECTED MOMENTS / 03</span></div><div className="gallery-grid">{gallery.map(([image, alt, label, color], index) => <article className={`gallery-card ${color} reveal`} key={image} style={{ "--delay": `${index * 90}ms` } as React.CSSProperties}><div className="gallery-visual"><div className="gallery-lines" /><div className="gallery-orb"><span>ECT</span></div><span className="gallery-image-name">{image}</span></div><div className="gallery-caption"><span>{label}</span><strong>{alt}</strong><ArrowUpRight size={18} /></div></article>)}</div></div></section>
+        <section className="gallery-section section-pad"><div className="container"><SectionLabel eyebrow="IN THE FIELD" number="06" /><div className="section-heading-row gallery-heading-row"><h2 className="section-heading reveal">Photo <span>Gallery</span></h2><span className="gallery-count reveal">SELECTED MOMENTS / {String(galleryItems.length).padStart(2, "0")}</span></div><div className="gallery-grid">{galleryItems.map(([image, alt, label, color], index) => <article className={`gallery-card ${color} reveal`} key={image} style={{ "--delay": `${index * 90}ms` } as React.CSSProperties}><div className="gallery-visual">{image.startsWith("http") ? <img src={image} alt={alt} className="gallery-photo" /> : null}<div className="gallery-lines" /><div className="gallery-orb"><span>ECT</span></div><span className="gallery-image-name">{image}</span></div><div className="gallery-caption"><span>{label}</span><strong>{alt}</strong><ArrowUpRight size={18} /></div></article>)}</div></div></section>
 
         <section id="contact" className="contact-section"><div className="contact-glow" /><div className="container contact-layout"><div><SectionLabel eyebrow="COME SAY HELLO" number="07" /><h2 className="contact-heading reveal">Let’s make<br /><em>something real.</em></h2></div><div className="contact-details reveal"><p>Department of Electronics with Computer Technology</p><p>NSS College Rajakumari</p><a href="mailto:ect@nssraj.ac.in"><Mail size={17} /> ect@nssraj.ac.in</a><a href="tel:+914868273203"><Phone size={17} /> +91 4868 273203</a><div className="social-row"><a href="#contact" aria-label="Facebook">f</a><a href="#contact" aria-label="Instagram"><Instagram size={16} /></a><a href="#contact" aria-label="YouTube"><Youtube size={17} /></a></div></div></div></section>
       </main>
