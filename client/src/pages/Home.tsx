@@ -178,7 +178,7 @@ export default function Home() {
             </a>
           ))}
         </nav>
-        <a className="header-admin-link" href="/admin">ADMIN</a>
+        <a className="header-admin-link" href="/admin" onClick={closeMenu} aria-label="Sign in to the admin content studio">SIGN IN / ADMIN</a>
         <a className="header-contact" href="#contact">CONNECT <ArrowUpRight size={15} /></a>
         <button className="menu-trigger" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
