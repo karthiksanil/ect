@@ -13,15 +13,28 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 // with "invalid oauth state". It returns void by design, so there is no URL to
 // stash across renders.
 export const startLogin = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
+  const oauthPortalUrl = (import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im").replace(/\/+$/, "");
   const appId = import.meta.env.VITE_APP_ID;
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
+
+  if (!appId) {
+    console.error("[OAuth] Missing VITE_APP_ID in the deployment environment.");
+    window.alert("Admin sign-in is temporarily unavailable. Please contact the site administrator.");
+    return;
+  }
 
   const nonce = crypto.randomUUID();
   document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
   const state = encodeOAuthState({ redirectUri, nonce });
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
+  let url: URL;
+  try {
+    url = new URL(`${oauthPortalUrl}/app-auth`);
+  } catch (error) {
+    console.error("[OAuth] Invalid VITE_OAUTH_PORTAL_URL.", error);
+    window.alert("Admin sign-in is temporarily unavailable. Please contact the site administrator.");
+    return;
+  }
   url.searchParams.set("appId", appId);
   url.searchParams.set("redirectUri", redirectUri);
   url.searchParams.set("state", state);
