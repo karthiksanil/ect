@@ -1,0 +1,11 @@
+node_modules
+.pnpm-store
+dist
+.git
+.gitignore
+.manus-logs
+coverage
+.env
+.env.*
+*.log
+screenshots
