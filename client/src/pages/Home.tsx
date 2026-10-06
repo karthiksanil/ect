@@ -20,6 +20,7 @@ import {
   X,
   Youtube,
 } from "lucide-react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 
 const navItems = [
@@ -124,6 +125,11 @@ function ScrollReveal() {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 80, damping: 22, mass: 0.7 });
+  const orbitRotation = useTransform(smoothScroll, [0, 0.55], [0, 135]);
+  const orbitDrift = useTransform(smoothScroll, [0, 1], [0, 120]);
   const { data: liveContent } = trpc.content.list.useQuery();
 
   const hasLiveContent = Boolean(liveContent?.length);
@@ -154,7 +160,7 @@ export default function Home() {
     <div className="site-shell" id="home">
       <ScrollReveal />
       <div className="noise" />
-      <header className={`site-header ${scrolled ? "site-header-scrolled" : ""}`}>
+      <motion.header className={`site-header ${scrolled ? "site-header-scrolled" : ""}`} initial={reducedMotion ? false : { y: -76, opacity: 0 }} animate={reducedMotion ? undefined : { y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}>
         <a className="header-brand" href="#home" onClick={closeMenu}>
           <BrandMark />
           <span className="header-brand-copy">
@@ -177,18 +183,18 @@ export default function Home() {
         <button className="menu-trigger" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
-      </header>
+      </motion.header>
 
       <main>
         <section className="hero-section">
           <div className="hero-grid" />
-          <div className="hero-orbit hero-orbit-one" />
-          <div className="hero-orbit hero-orbit-two" />
+          <motion.div className="hero-orbit hero-orbit-one" style={reducedMotion ? undefined : { rotate: orbitRotation }} />
+          <motion.div className="hero-orbit hero-orbit-two" style={reducedMotion ? undefined : { y: orbitDrift }} />
           <div className="hero-beam hero-beam-one" />
           <div className="hero-beam hero-beam-two" />
           <div className="hero-content container">
             <div className="hero-side-note reveal">Department of Electronics with Computer Technology<br />NSS College Rajakumari<br />Affiliated to Mahatma Gandhi University, Kottayam</div>
-            <div className="hero-main-copy">
+            <motion.div className="hero-main-copy" initial={reducedMotion ? false : { opacity: 0, x: -42 }} animate={reducedMotion ? undefined : { opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.22, ease: [0.23, 1, 0.32, 1] }}>
               <div className="hero-kicker reveal"><span className="live-dot" /> EST. 2026 / RAJAKUMARI, KERALA</div>
               <h1 className="hero-title reveal">Shaping Minds,<br /><em>Building the Future</em></h1>
               <p className="hero-description reveal">Empowering students through quality education<br className="desktop-break" /> in Electronics and Computer Technology.</p>
@@ -196,8 +202,8 @@ export default function Home() {
                 <a className="button button-primary" href="#about">EXPLORE MORE <ArrowUpRight size={18} /></a>
                 <a className="button button-quiet" href="#events"><span className="play-icon"><Play size={11} fill="currentColor" /></span> VIEW DEPARTMENT ACTIVITIES</a>
               </div>
-            </div>
-            <div className="hero-stat reveal"><strong>01</strong><span>CURIOUS<br />MINDS</span></div>
+            </motion.div>
+            <motion.div className="hero-stat reveal" initial={reducedMotion ? false : { opacity: 0, scale: 0.86 }} animate={reducedMotion ? undefined : { opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.55, ease: [0.23, 1, 0.32, 1] }}><strong>01</strong><span>CURIOUS<br />MINDS</span></motion.div>
           </div>
           <a className="scroll-cue" href="#about"><span>SCROLL TO EXPLORE</span><ChevronDown size={17} /></a>
           <div className="hero-code" aria-hidden="true">&lt;ect /&gt;<br /><span>build(impact)</span></div>
