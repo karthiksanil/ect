@@ -177,6 +177,9 @@ export default function Home() {
               {label}
             </a>
           ))}
+          <a className="mobile-admin-link" href="/admin" onClick={closeMenu}>
+            SIGN IN TO ADMIN <ArrowUpRight size={14} />
+          </a>
         </nav>
         <a className="header-admin-link" href="/admin" onClick={closeMenu} aria-label="Sign in to the admin content studio">SIGN IN / ADMIN</a>
         <a className="header-contact" href="#contact">CONNECT <ArrowUpRight size={15} /></a>
